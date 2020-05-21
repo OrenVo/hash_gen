@@ -3,6 +3,8 @@
 from subprocess import Popen
 import subprocess
 import sys
+import os
+import stat
 import os.path
 import re
 
@@ -11,6 +13,11 @@ dir_path = '.'
 # Funkce pro psaní na stderr
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
+
+# Funkce pro ověření práv pro čtení souboru
+def isgroupreadable(filepath):
+  st = os.stat(filepath)
+  return bool(st.st_mode & stat.S_IRGRP)
 
 if __name__ == "__main__":
     # načtení listu souborů ke spočítání md5sum
@@ -28,6 +35,8 @@ if __name__ == "__main__":
                  universal_newlines=True
                  )
     output_find, errors_find = find.communicate()
+    if find.returncode != 0:
+        eprint(f'Chyba při provádění příkazu find\n\t{errors_find}\n Pokračuji ve spracování dobrých souborů')
     files = output_find.split(sep='\n')
     files = [f for f in files if os.path.isfile(f)]     # odstranĚní složek z výpisu find
     infos = list()
@@ -56,6 +65,9 @@ if __name__ == "__main__":
     for file in files:
         if not os.path.isfile(file):    # přeskočení složek
             continue
+        # Pro kontrolu přístupových práv k souboru odkomentujte následující řádky (vypnuto kvůli optimalizaci systémových volání)
+        #if not isgroupreadable(file):
+        #   continue
         md5sum = Popen(["md5sum", file],
                        stdout=subprocess.PIPE,
                        stderr=subprocess.PIPE,
@@ -68,12 +80,18 @@ if __name__ == "__main__":
         ls_output, ls_err = ls.communicate()
         ls_output = ls_output.split()
         # output vars
-        file_size = ls_output[2]
-        file_date = ls_output[3]
-        file_sum = sum_output.split()[0]
-        info = (ls_output[2], ls_output[3], sum_output.split()[0])
-        path_n_name_of_file = file
-        path_n_name_of_file = path_n_name_of_file.replace(dir_path, '', 1)
+        if md5sum.returncode != 0:
+            eprint(f'Přeskakuji soubor {file}\n\t{sum_err}')
+            continue
+        if ls.returncode != 0:
+            eprint(f'Přeskakuji soubor {file}\n\t{ls_err}')
+            continue
+        try:
+            info = (ls_output[2], ls_output[3], sum_output.split()[0])
+        except IndexError:
+            eprint(f'Chyba při zpracování výstupu md5sum, nebo ls. Přeskakuji soubor {file}')
+            continue
+        path_n_name_of_file = file.replace(dir_path, '', 1)
         path_n_name_of_file = re.sub(r'^/', '', path_n_name_of_file, 1)
         print(f'\
             <tr>\n\
