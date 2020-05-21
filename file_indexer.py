@@ -7,6 +7,7 @@ import os
 import stat
 import os.path
 import re
+import signal
 
 dir_path = '.'
 
@@ -18,6 +19,13 @@ def eprint(*args, **kwargs):
 def isgroupreadable(filepath):
   st = os.stat(filepath)
   return bool(st.st_mode & stat.S_IRGRP)
+
+# Funkce pro zpracování signálu SIGINT (ctrl + c)
+def signal_handler(sig, frame):
+    eprint('Odchycen signál pro ukončení!')
+    print('        </table>')
+    print('    </body>\n</html>')
+    sys.exit(0)
 
 if __name__ == "__main__":
     # načtení listu souborů ke spočítání md5sum
@@ -66,6 +74,7 @@ if __name__ == "__main__":
                 <th>Datum změny</th>\n\
                 <th>md5sum</th>\n\
             </tr>')
+    signal.signal(signal.SIGINT, signal_handler)
     for file in files:
         if not os.path.isfile(file):    # přeskočení složek
             continue
@@ -88,7 +97,7 @@ if __name__ == "__main__":
             ls.kill()
             sum_output, sum_err = md5sum.communicate(timeout=10)
             ls_output, ls_err = ls.communicate(timeout=10)
-            eprint(f'Přeskakuji soubor {file}\n\t{sum_err}\n\n{ls_err}')
+            eprint(f'Přeskakuji soubor, kvůli překročení timeout limitu {file}\n\t{sum_err}\n\n{ls_err}')
             continue
         ls_output = ls_output.split()
         # output vars
