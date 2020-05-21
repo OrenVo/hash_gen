@@ -17,7 +17,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         eprint('Chybí cesta ke složce, jako 1. argument.')
         exit(1)
-    else:
+    else:   # kontrola vstupní složky, jestli je složka
         dir_path = sys.argv[1]
         if not os.path.isdir(dir_path):
             eprint(f'Uvedená cesta {dir_path}, není složkou.')
@@ -29,8 +29,9 @@ if __name__ == "__main__":
                  )
     output_find, errors_find = find.communicate()
     files = output_find.split(sep='\n')
-    files = [f for f in files if os.path.isfile(f)]
+    files = [f for f in files if os.path.isfile(f)]     # odstranĚní složek z výpisu find
     infos = list()
+    # kostra html
     print("""<!doctype html>
 <html>
     <head>
@@ -44,7 +45,7 @@ if __name__ == "__main__":
     </head>
     <body>""")
     for file in files:
-        if not os.path.isfile(file):
+        if not os.path.isfile(file):    # přeskočení složek
             continue
         md5sum = Popen(["md5sum", file],
                        stdout=subprocess.PIPE,
@@ -63,6 +64,7 @@ if __name__ == "__main__":
         file_sum = sum_output.split()[0]
         info = (file, ls_output[2], ls_output[3], sum_output.split()[0])
         infos.append(info)
+    # generování tabulky
     print('        <table>')
     print('\
             <tr>\n\
@@ -82,6 +84,6 @@ if __name__ == "__main__":
                 <th>{info[2]}</th>\n\
                 <th>{info[3]}</th>\n\
             </tr>')
-
+    # konec výpisu
     print('        </table>')
     print('    </body>\n</html>')
