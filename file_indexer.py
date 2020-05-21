@@ -33,16 +33,16 @@ if __name__ == "__main__":
     infos = list()
     print("""<!doctype html>
 <html>
-\t<head>
-\t\t<title>""" + dir_path + """</title>
-\t\t<style>
-\t\t\ttable, th, td {
-\t\t\t\ttext-align:left
-\t\t\t}
-\t\t\ttable { width:100%}
-\t\t</style>
-\t</head>
-\t<body>""")
+    <head>
+        <title>""" + dir_path + """</title>
+        <style>
+            table, th, td {
+                text-align:left
+            }
+            table { width:100%}
+        </style>
+    </head>
+    <body>""")
     for file in files:
         if not os.path.isfile(file):
             continue
@@ -63,14 +63,25 @@ if __name__ == "__main__":
         file_sum = sum_output.split()[0]
         info = (file, ls_output[2], ls_output[3], sum_output.split()[0])
         infos.append(info)
-    print('\t\t<table>')
-    print('\t\t\t<tr>\n\t\t\t\t<th>Soubor</th>\n\t\t\t\t<th>Velikost [B]</th>\n\t\t\t\t<th>Datum změny</th>\n\t\t\t\t<th>md5sum</th>\n\t\t\t</tr>')
+    print('        <table>')
+    print('\
+            <tr>\n\
+                <th>Soubor</th>\n\
+                <th>Velikost [B]</th>\n\
+                <th>Datum změny</th>\n\
+                <th>md5sum</th>\n\
+            </tr>')
     for info in infos:
         path_n_name_of_file = info[0]
         path_n_name_of_file = path_n_name_of_file.replace(dir_path, '', 1)
         path_n_name_of_file = re.sub(r'^/', '', path_n_name_of_file, 1)
-        print(
-            f'\t\t\t<tr>\n\t\t\t\t<th>{path_n_name_of_file}</th>\n\t\t\t\t<th>{info[1]}</th>\n\t\t\t\t<th>{info[2]}</th>\n\t\t\t\t<th>{info[3]}</th>\n\t\t\t</tr>')
+        print(f'\
+            <tr>\n\
+                <th>{path_n_name_of_file}</th>\n\
+                <th>{info[1]}</th>\n\
+                <th>{info[2]}</th>\n\
+                <th>{info[3]}</th>\n\
+            </tr>')
 
-    print('\t\t</table>')
-    print('\t</body>\n</html>')
+    print('        </table>')
+    print('    </body>\n</html>')
