@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from subprocess import Popen
+from subprocess import Popen, TimeoutExpired
 import subprocess
 import sys
 import os
@@ -34,7 +34,11 @@ if __name__ == "__main__":
                  stderr=subprocess.PIPE,
                  universal_newlines=True
                  )
-    output_find, errors_find = find.communicate()
+    try:
+        output_find, errors_find = find.communicate(timeout=600)
+    except TimeoutExpired:
+        eprint('Příkaz find běžel moc dlouho (600s)')
+        exit(1)
     if find.returncode != 0:
         eprint(f'Chyba při provádění příkazu find\n\t{errors_find}\n Pokračuji ve spracování dobrých souborů')
     files = output_find.split(sep='\n')
@@ -76,8 +80,16 @@ if __name__ == "__main__":
                    stdout=subprocess.PIPE,
                    stderr=subprocess.PIPE,
                    universal_newlines=True)
-        sum_output, sum_err = md5sum.communicate()
-        ls_output, ls_err = ls.communicate()
+        try:
+            sum_output, sum_err = md5sum.communicate(timeout=30)
+            ls_output, ls_err = ls.communicate(timeout=30)
+        except TimeoutExpired:
+            md5sum.kill()
+            ls.kill()
+            sum_output, sum_err = md5sum.communicate(timeout=10)
+            ls_output, ls_err = ls.communicate(timeout=10)
+            eprint(f'Přeskakuji soubor {file}\n\t{sum_err}\n\n{ls_err}')
+            continue
         ls_output = ls_output.split()
         # output vars
         if md5sum.returncode != 0:
