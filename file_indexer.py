@@ -44,6 +44,15 @@ if __name__ == "__main__":
         </style>
     </head>
     <body>""")
+    # generování tabulky
+    print('        <table>')
+    print('\
+            <tr>\n\
+                <th>Soubor</th>\n\
+                <th>Velikost [B]</th>\n\
+                <th>Datum změny</th>\n\
+                <th>md5sum</th>\n\
+            </tr>')
     for file in files:
         if not os.path.isfile(file):    # přeskočení složek
             continue
@@ -62,27 +71,16 @@ if __name__ == "__main__":
         file_size = ls_output[2]
         file_date = ls_output[3]
         file_sum = sum_output.split()[0]
-        info = (file, ls_output[2], ls_output[3], sum_output.split()[0])
-        infos.append(info)
-    # generování tabulky
-    print('        <table>')
-    print('\
-            <tr>\n\
-                <th>Soubor</th>\n\
-                <th>Velikost [B]</th>\n\
-                <th>Datum změny</th>\n\
-                <th>md5sum</th>\n\
-            </tr>')
-    for info in infos:
-        path_n_name_of_file = info[0]
+        info = (ls_output[2], ls_output[3], sum_output.split()[0])
+        path_n_name_of_file = file
         path_n_name_of_file = path_n_name_of_file.replace(dir_path, '', 1)
         path_n_name_of_file = re.sub(r'^/', '', path_n_name_of_file, 1)
         print(f'\
             <tr>\n\
                 <th>{path_n_name_of_file}</th>\n\
+                <th>{info[0]}</th>\n\
                 <th>{info[1]}</th>\n\
                 <th>{info[2]}</th>\n\
-                <th>{info[3]}</th>\n\
             </tr>')
     # konec výpisu
     print('        </table>')
