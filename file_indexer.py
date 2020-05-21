@@ -81,8 +81,8 @@ if __name__ == "__main__":
                    stderr=subprocess.PIPE,
                    universal_newlines=True)
         try:
-            sum_output, sum_err = md5sum.communicate(timeout=30)
-            ls_output, ls_err = ls.communicate(timeout=30)
+            sum_output, sum_err = md5sum.communicate(timeout=150)
+            ls_output, ls_err = ls.communicate(timeout=5)
         except TimeoutExpired:
             md5sum.kill()
             ls.kill()
