@@ -70,7 +70,7 @@ if __name__ == "__main__":
                 border-collapse: collapse;
                 padding: 5px;
                 text-align:left; }
-            table {width:100%}
+            table {width:100%;}
         </style>
     </head>
     <body>""")
