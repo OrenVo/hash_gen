@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 from subprocess import Popen, TimeoutExpired
 import subprocess
@@ -27,6 +27,9 @@ def signal_handler(sig, frame):
     print('    </body>\n</html>')
     sys.exit(0)
 
+# Funkce vymění speciální znaky v řetězci za escape sekvence pro XML
+sanitize_string_for_xml = lambda s : (s.replace('&', '&amp;')).replace('"', '&quot;').replace('\'', '&apos;').replace('<', '&lt;').replace('>', '&gt;')
+
 if __name__ == "__main__":
     # načtení listu souborů ke spočítání md5sum
     if len(sys.argv) == 1:
@@ -42,6 +45,7 @@ if __name__ == "__main__":
                  stderr=subprocess.PIPE,
                  universal_newlines=True
                  )
+    output_find, errors_find = '', ''
     try:
         output_find, errors_find = find.communicate(timeout=600)
     except TimeoutExpired:
@@ -50,18 +54,23 @@ if __name__ == "__main__":
     if find.returncode != 0:
         eprint(f'Chyba při provádění příkazu find\n\t{errors_find}\n Pokračuji ve spracování dobrých souborů')
     files = output_find.split(sep='\n')
-    files = [f for f in files if os.path.isfile(f)]     # odstranĚní složek z výpisu find
+    files = [f for f in files if os.path.isfile(f)]     # odstranění složek z výpisu find
     infos = list()
     # kostra html
-    print("""<!doctype html>
-<html>
+    dir_path = sanitize_string_for_xml(dir_path)
+    print("""<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <title>""" + dir_path + """</title>
-        <style>
+        <style type="text/css">
             table, th, td {
-                text-align:left
-            }
-            table { width:100%}
+                border: 1px solid black;
+                border-collapse: collapse;
+                padding: 5px;
+                text-align:left; }
+            table {width:100%}
         </style>
     </head>
     <body>""")
@@ -72,7 +81,7 @@ if __name__ == "__main__":
                 <th>Soubor</th>\n\
                 <th>Velikost [B]</th>\n\
                 <th>Datum změny</th>\n\
-                <th>md5sum</th>\n\
+                <th>Identifikátor MD5</th>\n\
             </tr>')
     signal.signal(signal.SIGINT, signal_handler)
     for file in files:
@@ -114,12 +123,13 @@ if __name__ == "__main__":
             continue
         path_n_name_of_file = file.replace(dir_path, '', 1)
         path_n_name_of_file = re.sub(r'^/', '', path_n_name_of_file, 1)
+        path_n_name_of_file = sanitize_string_for_xml(path_n_name_of_file)
         print(f'\
             <tr>\n\
-                <th>{path_n_name_of_file}</th>\n\
-                <th>{info[0]}</th>\n\
-                <th>{info[1]}</th>\n\
-                <th>{info[2]}</th>\n\
+                <td>{path_n_name_of_file}</td>\n\
+                <td>{info[0]}</td>\n\
+                <td>{info[1]}</td>\n\
+                <td>{info[2]}</td>\n\
             </tr>')
     # konec výpisu
     print('        </table>')
